@@ -13,11 +13,6 @@ def main():
     client = OpenAI()
     st.title("Gen-Insights")
 
-    # Initialize session state for user_query if it doesn't exist
-    if 'user_query' not in st.session_state:
-        st.session_state['user_query'] = ""
-        st.session_state['messages_so_far'] = None
-
     # Text input from the user
     st.sidebar.title("Common Questions")
     questions = {
@@ -60,17 +55,32 @@ def main():
     dfs_all['b_geo_all_groups'] = pd.read_parquet('obfus/b_geo_all_groups')
     dfs_all['b_ms_all_groups'] = pd.read_parquet('obfus/b_ms_all_groups')
     dfs_all['b_geo_ms_all_groups'] = pd.read_parquet('obfus/b_geo_ms_all_groups')
+    dfs_all['over_time_data'] = pd.read_parquet('obfus/over_time_data')
+    dfs_all['over_time_slopes'] = pd.read_parquet('obfus/over_time_slopes')
 
-    def reset_messages():
+    unique_app_ids = dfs_all['a_geo_all_apps']['app_id'].unique()  # Define unique_app_ids here
+
+    # Initialize session state for user_query, messages_so_far, and dfs_specific if they don't exist
+    if 'user_query' not in st.session_state:
+        st.session_state['user_query'] = ""
+    if 'messages_so_far' not in st.session_state:
         st.session_state['messages_so_far'] = None
+    if 'dfs_specific' not in st.session_state:
+        first_app_id = unique_app_ids[0] if len(unique_app_ids) > 0 else None
+        st.session_state['dfs_specific'] = get_data(dfs_all, first_app_id) if first_app_id else None
+        st.session_state['selected_app_id'] = first_app_id  # Initialize selected_app_id with the first app_id
+    def load_data_for_selected_app():
+        app_id = st.session_state['selected_app_id']
+        st.session_state['dfs_specific'] = get_data(dfs_all, app_id)
+        st.session_state['messages_so_far'] = None  # Reset the context
 
-    unique_app_ids = dfs_all['a_geo_all_apps']['app_id'].unique()
-    selected_app_id = st.selectbox(
+    _ = st.selectbox(
         'Pick an obfuscated app_id',
         unique_app_ids,
-        on_change=reset_messages)
-    st.session_state['selected_app_id'] = selected_app_id
-    dfs_specific = get_data(dfs_all)
+        index=0,  # Default to the first app_id in the list
+        on_change=load_data_for_selected_app,
+        key='selected_app_id'
+    )
 
     if st.button("Generate random insight"):
         # Flatten the list of questions and pick a random one
@@ -78,9 +88,10 @@ def main():
         random_question = random.choice(all_questions)
         st.session_state.user_query = random_question
 
-    user_input = st.text_input("At your service. What would you like to know?", key="user_query")
+    _ = st.text_input("At your service. What would you like to know?", key="user_query")
 
     if st.button("Uncover"):
+        user_input = st.session_state.user_query  # Retrieve the user query from the session state
         if user_input:
             logging.info(f'You entered: {user_input}')
             funny_wait_sentences = [
@@ -92,10 +103,17 @@ def main():
             ]
 
             with st.spinner(random.choice(funny_wait_sentences)):
-                second_response_text, st.session_state['messages_so_far'] = run_conversation(
-                    dfs_specific, client, user_input, messages=st.session_state['messages_so_far']
-                )
-            st.text(second_response_text)
+                # Check if the data specific to the selected app is loaded
+                if st.session_state['dfs_specific'] is not None:
+                    # Run the conversation with the loaded data and existing messages
+                    second_response_text, st.session_state['messages_so_far'] = run_conversation(
+                        st.session_state['dfs_specific'], client, user_input,
+                        messages=st.session_state['messages_so_far']
+                    )
+                    st.text(second_response_text)
+                else:
+                    # If the data is not loaded, display an error message
+                    st.error("Data specific to the selected app is not loaded. Please select an app to load the data.")
         else:
             st.warning("Please enter a query to get insights.")
 

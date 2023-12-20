@@ -20,6 +20,8 @@ def main():
     dfs_all['b_geo_all_groups'] = pd.read_parquet('obfus/b_geo_all_groups')
     dfs_all['b_ms_all_groups'] = pd.read_parquet('obfus/b_ms_all_groups')
     dfs_all['b_geo_ms_all_groups'] = pd.read_parquet('obfus/b_geo_ms_all_groups')
+    dfs_all['over_time_data'] = pd.read_parquet('obfus/over_time_data')
+    dfs_all['over_time_slopes'] = pd.read_parquet('obfus/over_time_slopes')
 
     dfs_specific = get_data(dfs_all)
     while True:

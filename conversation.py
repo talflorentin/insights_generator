@@ -51,7 +51,7 @@ def run_conversation(dfs, client, query, messages=None):
         messages_branch.append({"role": "system", "content": "Show the results, along with suggestion for 3 follow-up questions:\
         If your results contain '_int', keep it. For cost and revenue numbers, add $ sign. For retention rates and rate differences add % sign.\
         if the result for the question is not within the JSON, say you don't have the answer at the moment, do not come up with a fake answer!\
-        If possible, show the results as a table.\
+        If possible, show the results as a table. Don't skip any columns, show all of them.\
         If user asked to interpret his data, don't show all the results, just create some interesting and meaningful insights.\
         The follow up questions should be in the same 'style' but not a copy of the previous questions.\
         they should not contain actual names of countries or media sources."})

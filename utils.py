@@ -10,6 +10,8 @@ def get_data(full_dfs, chosen_app_id=None):
     b_geo_all_groups = full_dfs['b_geo_all_groups']
     b_ms_all_groups = full_dfs['b_ms_all_groups']
     b_geo_ms_all_groups = full_dfs['b_geo_ms_all_groups']
+    over_time_data = full_dfs['over_time_data']
+    over_time_slopes = full_dfs['over_time_slopes']
 
     if chosen_app_id is None:
         high_ms_count_group = b_ms_all_groups.benchmark_group.value_counts().index[0]
@@ -18,6 +20,8 @@ def get_data(full_dfs, chosen_app_id=None):
     a_geo = a_geo_all_apps[a_geo_all_apps.app_id == chosen_app_id]
     a_ms = a_ms_all_apps[a_ms_all_apps.app_id == chosen_app_id]
     a_geo_ms = a_geo_ms_all_apps[a_geo_ms_all_apps.app_id == chosen_app_id]
+    over_time_data = over_time_data[over_time_data.app_id == chosen_app_id]
+    over_time_slopes = over_time_slopes[over_time_slopes.app_id == chosen_app_id]
 
     chosen_benchmark_group = a_geo.benchmark_group.unique()[0]
     b_geo = b_geo_all_groups[b_geo_all_groups.benchmark_group.isin([chosen_benchmark_group])]
@@ -27,7 +31,8 @@ def get_data(full_dfs, chosen_app_id=None):
             "a_geo_ms": a_geo_ms, "a_ms": a_ms, "a_geo": a_geo,
             "b_geo_ms_all_groups": b_geo_ms_all_groups, "b_ms_all_groups": b_ms_all_groups,
             "b_geo_all_groups": b_geo_all_groups, "a_geo_ms_all_apps": a_geo_ms_all_apps,
-            "a_ms_all_apps": a_ms_all_apps, "a_geo_all_apps": a_geo_all_apps}
+            "a_ms_all_apps": a_ms_all_apps, "a_geo_all_apps": a_geo_all_apps,
+            "over_time_data": over_time_data, "over_time_slopes": over_time_slopes}
 
 
 def get_answer_to_ua_question(dfs, function, metric, group, ordering_type, limit, segment):
@@ -43,6 +48,8 @@ def get_answer_to_ua_question(dfs, function, metric, group, ordering_type, limit
         return compare_with_benchmark(dfs, group, metric, limit)
     elif function == "my_data_interpret":
         return my_data_interpret(dfs)
+    elif function == "my_trends":
+        return my_trends(dfs, limit)
     return json.dumps({"insight": f"Sorry, no insight to show"})
 
 

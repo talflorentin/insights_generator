@@ -26,6 +26,8 @@ sent_and_func = \
     how are my campaigns in each country compared to my direct competitors?: compare_with_benchmark,
     compare my CPI over different countries to my competitors. top 5: compare_with_benchmark,
     How are my top networks doing compared to benchmark? in terms of retention day 7?: compare_with_benchmark
+    my retention rated7 opposite trend line countries?: my_trends
+    over time negative trend CPI per media source: my_trends
     '''
 
 
@@ -47,6 +49,7 @@ preprompt = \
     my_own_stats - when the UA asks about his own traffic/data/campaigns, without referring to competitors or benchmark data
     compare_with_benchmark - when want to compare how my main campaigns in a specific media source or GEO are performing compared to direct competitors
     my_data_interpret - general interpretation of the data
+    my_trends - understand over time trends
     
     Here are a list of questions along with their relevant functions:
     {sent_and_func}

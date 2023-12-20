@@ -1,5 +1,7 @@
 import logging
 import json
+import pandas as pd
+
 
 def my_own_stats(dfs, chosen_dimension, metric, num_results):
     df = dfs['a_ms'].copy() if chosen_dimension == "media_source" else dfs['a_geo'].copy()
@@ -123,6 +125,40 @@ def my_data_interpret(dfs):
         'country_and_media_source_combination_traffic': df1.to_csv(),
         'media_source_level_traffic': df2.to_csv(),
         'country_level_traffic': df3.to_csv(),
+    }
+    logging.info(f'\noutput_json: {output_json}')
+    return json.dumps(output_json, indent=2)
+
+
+def my_trends(dfs, limit):
+    df_over_time = dfs['over_time_data'].copy()
+    slopes_df = dfs['over_time_slopes'].copy()
+
+    app_slopes_df = slopes_df.sort_values(by='ret_d7_trend_diff_from_installs', ascending=False).head(limit)
+    slopes_and_date_data = pd.merge(df_over_time, app_slopes_df, on=['app_id', 'media_source', 'country'])
+
+    slopes_and_date_data = slopes_and_date_data.sort_values(by=['ret_d7_trend_diff_from_installs', 'install_date'],
+                                                            ascending=[False, True])
+
+    ## Output the data per day
+    slopes_and_date_data = slopes_and_date_data[['media_source', 'country', 'install_date', 'ttl_installs', "ttl_users_d7"]]
+    records_json = slopes_and_date_data.to_json(orient='records', date_format='iso')
+    records = json.loads(records_json)
+    output_dict = {col: [record[col] for record in records] for col in slopes_and_date_data.columns}
+    print(output_dict)
+    # output_json = json.dumps(output_dict, indent=2)
+    # logging.info(f'\noutput_json: {output_json}')
+    # return output_json
+
+    ## Output the slopes summary
+    app_slopes_df_subset = app_slopes_df[['media_source', 'country', 'slope_installs', 'slope_ret_d7']]
+    numeric_cols = app_slopes_df_subset.select_dtypes(include=['number']).columns
+    app_slopes_df_subset[numeric_cols] = app_slopes_df_subset[numeric_cols].round(decimals=3)
+    output_json = {
+        "country": list(app_slopes_df_subset.country),
+        "media source": list(app_slopes_df_subset.media_source),
+        "slope installs": list(app_slopes_df_subset.slope_installs),
+        "slope retention day 7": list(app_slopes_df_subset.slope_ret_d7)
     }
     logging.info(f'\noutput_json: {output_json}')
     return json.dumps(output_json, indent=2)
