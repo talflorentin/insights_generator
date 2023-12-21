@@ -1,7 +1,8 @@
 import logging
 import json
 import pandas as pd
-
+import matplotlib.pyplot as plt
+from matplotlib.ticker import FixedLocator
 
 def my_own_stats(dfs, chosen_dimension, metric, num_results):
     df = dfs['a_ms'].copy() if chosen_dimension == "media_source" else dfs['a_geo'].copy()
@@ -134,6 +135,9 @@ def my_trends(dfs, limit):
     df_over_time = dfs['over_time_data'].copy()
     slopes_df = dfs['over_time_slopes'].copy()
 
+    threshold = 0.1
+    slopes_df = slopes_df[slopes_df.ret_d7_trend_diff_from_installs > threshold]
+
     app_slopes_df = slopes_df.sort_values(by='ret_d7_trend_diff_from_installs', ascending=False).head(limit)
     slopes_and_date_data = pd.merge(df_over_time, app_slopes_df, on=['app_id', 'media_source', 'country'])
 
@@ -161,4 +165,43 @@ def my_trends(dfs, limit):
         "slope retention day 7": list(app_slopes_df_subset.slope_ret_d7)
     }
     logging.info(f'\noutput_json: {output_json}')
-    return json.dumps(output_json, indent=2)
+    img = None
+    if not slopes_and_date_data.empty:
+        img = create_trendline_images(slopes_and_date_data)
+    return json.dumps(output_json, indent=2), img
+
+
+def create_trendline_images(slopes_and_date_data):
+    # Convert 'install_date' to datetime if it's not already
+    slopes_and_date_data['install_date'] = pd.to_datetime(slopes_and_date_data['install_date'])
+
+    media_country_combinations = slopes_and_date_data[['media_source', 'country']].drop_duplicates()
+    num_combinations = len(media_country_combinations)
+    fig, axes = plt.subplots(nrows=num_combinations, ncols=1,
+                             figsize=(10, 5 * num_combinations), squeeze=False)
+    axes = axes.flatten()
+
+    for (idx, (media_source, country)), ax in zip(media_country_combinations.iterrows(), axes):
+        data = slopes_and_date_data[(slopes_and_date_data['media_source'] == media_source) &
+                                    (slopes_and_date_data['country'] == country)]
+
+        data = data.sort_values('install_date')
+        ax.plot(data['install_date'], data['ttl_installs'], color='b', label='Total Installs')
+        ax.set_ylabel('Total Installs', color='b')
+        ax.tick_params(axis='y', labelcolor='b')
+
+        # Set the x-ticks and labels
+        ax.set_xticks(data['install_date'])
+        ax.set_xticklabels(data['install_date'].dt.strftime('%Y-%m-%d'), rotation=90)
+
+        ax2 = ax.twinx()
+        ax2.plot(data['install_date'], data['ttl_users_d7'], color='r', label='Total Users D7')
+        ax2.set_ylabel('Total Users D7', color='r')
+        ax2.tick_params(axis='y', labelcolor='r')
+
+        ax.set_title(f'Media Source: {media_source} | Country: {country}')
+        ax.legend(loc='upper left')
+        ax2.legend(loc='upper right')
+
+    plt.tight_layout()  # Adjust subplots to fit into the figure area.
+    return fig

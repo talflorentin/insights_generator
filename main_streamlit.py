@@ -36,6 +36,9 @@ def main():
         "Opportunities to Grow": [
             "For countries I don't currently run in, which ones have the best CPI? (Top 3)",
             "Which new media sources my competitors are running in, and I'm not? And what's their CPI? Order by their volume."
+        ],
+        "Trends": [
+            "trendline over time for retention rate d7"
         ]
     }
 
@@ -59,6 +62,11 @@ def main():
     dfs_all['over_time_slopes'] = pd.read_parquet('obfus/over_time_slopes')
 
     unique_app_ids = dfs_all['a_geo_all_apps']['app_id'].unique()  # Define unique_app_ids here
+    # Negative trendline
+    # 9cfbd2db48dd11f586550d1fcaeae22827e845dac7a74a98239f8f7c
+    # faeeeabd0af4340095f58f97150c1251ed3a4a0bfbbd721e0a91401c
+    # e795027c70bd7d3142b17bac695a5249dc15a9548d19976fa0aa8509
+    # c95ba38d55b0e623d92b1283053d2970137923d1785330b7bc8714c5
 
     # Initialize session state for user_query, messages_so_far, and dfs_specific if they don't exist
     if 'user_query' not in st.session_state:
@@ -92,8 +100,10 @@ def main():
 
     if st.button("Uncover"):
         user_input = st.session_state.user_query  # Retrieve the user query from the session state
+        img = None  # Initialize img to None to ensure it's defined
         if user_input:
             logging.info(f'You entered: {user_input}')
+            logging.info(f"App ID: {st.session_state['selected_app_id']}")
             funny_wait_sentences = [
                 'Unearthing the data treasures...',
                 'Crunching numbers harder than my morning cereal...',
@@ -106,7 +116,7 @@ def main():
                 # Check if the data specific to the selected app is loaded
                 if st.session_state['dfs_specific'] is not None:
                     # Run the conversation with the loaded data and existing messages
-                    second_response_text, st.session_state['messages_so_far'] = run_conversation(
+                    second_response_text, st.session_state['messages_so_far'], img = run_conversation(
                         st.session_state['dfs_specific'], client, user_input,
                         messages=st.session_state['messages_so_far']
                     )
@@ -116,6 +126,10 @@ def main():
                     st.error("Data specific to the selected app is not loaded. Please select an app to load the data.")
         else:
             st.warning("Please enter a query to get insights.")
+
+        # Check if img is not None and display it
+        if img is not None:
+            st.pyplot(img)
 
     if st.button("Reset context"):
         st.session_state['messages_so_far'] = None

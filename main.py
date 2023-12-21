@@ -32,7 +32,7 @@ def main():
         if user_input == 'q':
             break
         logging.info(f'You entered: {user_input}')
-        second_response_text, messages_so_far = run_conversation(dfs_specific, client, user_input, messages=messages_so_far)
+        second_response_text, messages_so_far, img = run_conversation(dfs_specific, client, user_input, messages=messages_so_far)
         print(second_response_text)
 
 

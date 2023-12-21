@@ -40,12 +40,20 @@ def run_conversation(dfs, client, query, messages=None):
                 segment=function_args.get("segment", None),
             )
 
+            img = None
+            function_response_text = None
+            if isinstance(function_response, tuple):
+                function_response_text = function_response[0]
+                img = function_response[1]
+            elif isinstance(function_response, str):
+                function_response_text = function_response
+
             messages_branch.append(
                 {
                     "tool_call_id": tool_call.id,
                     "role": "tool",
                     "name": function_name,
-                    "content": function_response,
+                    "content": function_response_text,
                 }
             )
         messages_branch.append({"role": "system", "content": "Show the results, along with suggestion for 3 follow-up questions:\
@@ -74,4 +82,4 @@ def run_conversation(dfs, client, query, messages=None):
         response_message_text = response_message.content
 
     logging.info(f'Roles in conversation: {roles_tracking(messages)}')
-    return response_message_text, messages
+    return response_message_text, messages, img
