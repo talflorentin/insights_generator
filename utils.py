@@ -24,9 +24,9 @@ def get_data(full_dfs, chosen_app_id=None):
     over_time_slopes = over_time_slopes[over_time_slopes.app_id == chosen_app_id]
 
     chosen_benchmark_group = a_geo.benchmark_group.unique()[0]
-    b_geo = b_geo_all_groups[b_geo_all_groups.benchmark_group.isin([chosen_benchmark_group])]
-    b_ms = b_ms_all_groups[b_ms_all_groups.benchmark_group.isin([chosen_benchmark_group])]
-    b_geo_ms = b_geo_ms_all_groups[b_geo_ms_all_groups.benchmark_group.isin([chosen_benchmark_group])]
+    b_geo = b_geo_all_groups[b_geo_all_groups.benchmark_group == chosen_benchmark_group]
+    b_ms = b_ms_all_groups[b_ms_all_groups.benchmark_group == chosen_benchmark_group]
+    b_geo_ms = b_geo_ms_all_groups[b_geo_ms_all_groups.benchmark_group == chosen_benchmark_group]
     return {"b_geo_ms": b_geo_ms, "b_ms": b_ms, "b_geo": b_geo,
             "a_geo_ms": a_geo_ms, "a_ms": a_ms, "a_geo": a_geo,
             "b_geo_ms_all_groups": b_geo_ms_all_groups, "b_ms_all_groups": b_ms_all_groups,
@@ -36,6 +36,7 @@ def get_data(full_dfs, chosen_app_id=None):
 
 
 def get_answer_to_ua_question(dfs, function, metric, group, ordering_type, limit, segment):
+    metric = 'cpi' if metric == 'CPI' else metric
     if function == 'general_benchmark_question':
         return general_benchmark_question(dfs, group, metric, limit)
     if function == 'general_benchmark_question_specific_segment':
@@ -50,6 +51,8 @@ def get_answer_to_ua_question(dfs, function, metric, group, ordering_type, limit
         return my_data_interpret(dfs)
     elif function == "my_trends":
         return my_trends(dfs, limit)
+    elif function == 'benchmark_analyze':
+        return benchmark_analyze(dfs, metric, limit)
     return json.dumps({"insight": f"Sorry, no insight to show"})
 
 
@@ -59,7 +62,6 @@ def calculate_price(response, model_used):
     input_cost = (input_token_count / 1000) * token_prices[model_used]["input"]
     output_cost = (output_token_count / 1000) * token_prices[model_used]["output"]
     total_cost = round(input_cost + output_cost, 4)
-    logging.info(f'\nLLM Cost: {str(round(input_cost + output_cost, 4))}$')
     return total_cost
 
 

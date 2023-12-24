@@ -73,6 +73,8 @@ def main():
         st.session_state['user_query'] = ""
     if 'messages_so_far' not in st.session_state:
         st.session_state['messages_so_far'] = None
+    if 'total_cost_so_far' not in st.session_state:
+        st.session_state['total_cost_so_far'] = None
     if 'dfs_specific' not in st.session_state:
         first_app_id = unique_app_ids[0] if len(unique_app_ids) > 0 else None
         st.session_state['dfs_specific'] = get_data(dfs_all, first_app_id) if first_app_id else None
@@ -81,6 +83,7 @@ def main():
         app_id = st.session_state['selected_app_id']
         st.session_state['dfs_specific'] = get_data(dfs_all, app_id)
         st.session_state['messages_so_far'] = None  # Reset the context
+        st.session_state['total_cost_so_far'] = 0
 
     _ = st.selectbox(
         'Pick an obfuscated app_id',
@@ -116,9 +119,10 @@ def main():
                 # Check if the data specific to the selected app is loaded
                 if st.session_state['dfs_specific'] is not None:
                     # Run the conversation with the loaded data and existing messages
-                    second_response_text, st.session_state['messages_so_far'], img = run_conversation(
+                    second_response_text, st.session_state['messages_so_far'], img, st.session_state['total_cost_so_far'] = run_conversation(
                         st.session_state['dfs_specific'], client, user_input,
-                        messages=st.session_state['messages_so_far']
+                        st.session_state['messages_so_far'],
+                        st.session_state['total_cost_so_far']
                     )
                     st.text(second_response_text)
                 else:
@@ -133,6 +137,7 @@ def main():
 
     if st.button("Reset context"):
         st.session_state['messages_so_far'] = None
+        st.session_state['total_cost_so_far'] = None
         st.success("Context has been reset")
 
 

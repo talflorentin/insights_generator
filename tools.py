@@ -2,7 +2,6 @@ import logging
 import json
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.ticker import FixedLocator
 
 def my_own_stats(dfs, chosen_dimension, metric, num_results):
     df = dfs['a_ms'].copy() if chosen_dimension == "media_source" else dfs['a_geo'].copy()
@@ -12,6 +11,38 @@ def my_own_stats(dfs, chosen_dimension, metric, num_results):
     output_json = {
         chosen_dimension: list(sorted_df[chosen_dimension]),
         f"{metric}": list(sorted_df[metric])
+    }
+    logging.info(f'\noutput_json: {output_json}')
+    return json.dumps(output_json, indent=2)
+
+
+def benchmark_analyze(dfs, metric, num_results):
+    a = dfs['a_geo_ms'].copy()
+    b = dfs['b_geo_ms'].copy()
+    b[f'b_rank_best_{metric}'] = b['rnk_benchmark_group'].apply(lambda x: x.get(f'rank_best_{metric}', None))
+    a[f'a_rank_best_{metric}'] = a['rnk_benchmark_group'].apply(lambda x: x.get(f'rank_best_{metric}', None))
+    a[f'a_rank_worst_{metric}'] = a['rnk_benchmark_group'].apply(lambda x: x.get(f'rank_worst_{metric}', None))
+
+    merged_df = pd.merge(
+        a[['country', 'media_source', 'cpi', 'ret_d7', f'a_rank_best_{metric}', f'a_rank_worst_{metric}']],
+        b[['country', 'media_source', 'median_cpi', 'median_ret_d7', f'b_rank_best_{metric}']],
+        on=['country', 'media_source'],
+        how='outer'
+    )
+
+    # Exist in benchmark only
+    benchmark_only = merged_df[(merged_df[f'{metric}'].isna()) & (~merged_df[f'median_{metric}'].isna())].sort_values(by=f'b_rank_best_{metric}', ascending=False)[['country', 'media_source', f'median_{metric}']]
+    # Exists in both
+    benchmark_and_app = merged_df[(~merged_df[f'{metric}'].isna()) & (~merged_df[f'median_{metric}'].isna())].sort_values(by=f'b_rank_best_{metric}', ascending=False)
+    benchmark_and_app[f'strong_suggestion_{metric}'] = merged_df[f'a_rank_worst_{metric}'] + merged_df[f'b_rank_best_{metric}']
+    benchmark_and_app = benchmark_and_app.sort_values(by=f'strong_suggestion_{metric}', ascending=False)[['country', 'media_source', f'{metric}', f'median_{metric}']]
+    # Exists in app only
+    app_only = merged_df[~(merged_df[f'{metric}'].isna()) & (merged_df[f'median_{metric}'].isna())].sort_values(by=f'a_rank_best_{metric}', ascending=False)[['country', 'media_source', f'{metric}']]
+
+    output_json = {
+        'benchmark_only': benchmark_only.head(num_results).to_dict('records'),
+        'benchmark_and_app': benchmark_and_app.head(num_results).to_dict('records'),
+        'app_only': app_only.head(num_results).to_dict('records')
     }
     logging.info(f'\noutput_json: {output_json}')
     return json.dumps(output_json, indent=2)

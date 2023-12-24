@@ -12,6 +12,7 @@ def main():
 
     client = OpenAI()
     messages_so_far = None
+    total_cost_so_far = None
 
     dfs_all = {}
     dfs_all['a_geo_all_apps'] = pd.read_parquet('obfus/a_geo_all_apps')
@@ -23,7 +24,7 @@ def main():
     dfs_all['over_time_data'] = pd.read_parquet('obfus/over_time_data')
     dfs_all['over_time_slopes'] = pd.read_parquet('obfus/over_time_slopes')
 
-    dfs_specific = get_data(dfs_all)
+    dfs_specific = get_data(dfs_all, '0df217d0cea42cf654b99b624b15948e37a976750dbda2ec7949c072')
     while True:
         if messages_so_far is None:
             user_input = input("Gen-Insights at your service. What would you like to know?\n")
@@ -31,8 +32,14 @@ def main():
             user_input = input()
         if user_input == 'q':
             break
+        if total_cost_so_far is None:
+            total_cost_so_far = 0
         logging.info(f'You entered: {user_input}')
-        second_response_text, messages_so_far, img = run_conversation(dfs_specific, client, user_input, messages=messages_so_far)
+        second_response_text, messages_so_far, img, total_cost_so_far = run_conversation(dfs_specific,
+                                                                                         client,
+                                                                                         user_input,
+                                                                                         messages_so_far,
+                                                                                         total_cost_so_far)
         print(second_response_text)
 
 

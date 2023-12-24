@@ -50,6 +50,7 @@ preprompt = \
     compare_with_benchmark - when want to compare how my main campaigns in a specific media source or GEO are performing compared to direct competitors
     my_data_interpret - general interpretation of the data
     my_trends - understand over time trends
+    benchmark_analyze - when you are asked to to make a general benchmark analysis 
     
     Here are a list of questions along with their relevant functions:
     {sent_and_func}
@@ -60,7 +61,7 @@ preprompt = \
     A user will interact with you - you need to understand whether a user ask a question about his data and campaigns.
     Here are the most important parameters you should understand:
         function: <Get the function associated with the known question>
-        metric: <Could be either ret_d7, ret_d14, ret_d30 (stands for retention day 7/14/30 - but the default would be 7 if user does not specify) , cpi (cost per install), ROAS (return on ad spend)
+        metric: <Could be either ret_d7, ret_d14, ret_d30 (stands for retention day 7/14/30 - but the default would be 7 if user does not specify) , cpi (cost per install), ROAS (return on ad spend)>
         group: <Could be either media_source (such as applovin_int, bytedance_int, facebook, googleadwords_int, inmobi_int etc) or country>
         the "_int" stands for "integrated partner", by you should keep the "_int" without mentioning it.
 
@@ -88,7 +89,7 @@ tools = [
                 "type": "object",
                 "properties": {
                     "function": {"type": "string",
-                                 "description": "The name of internal function to run - general_benchmark_question/ opportunities_to_grow/ my_own_stats/ compare_with_benchmark/ my_data_interpret"},
+                                 "description": "The name of internal function to run - general_benchmark_question/ opportunities_to_grow/ my_own_stats/ compare_with_benchmark/ my_data_interpret/ my_trends/ benchmark_analyze"},
                     "metric": {"type": "string", "description": "The metric the client is asking about"},
                     "group": {"type": "string", "description": "Dimension grouping and aggregation"},
                     "ordering_type": {"type": "string",
