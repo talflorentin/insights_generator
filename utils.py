@@ -17,16 +17,16 @@ def get_data(full_dfs, chosen_app_id=None):
         high_ms_count_group = b_ms_all_groups.benchmark_group.value_counts().index[0]
         chosen_app_id = a_ms_all_apps[a_ms_all_apps.benchmark_group == high_ms_count_group].app_id.value_counts().index[0]
 
-    a_geo = a_geo_all_apps[a_geo_all_apps.app_id == chosen_app_id]
-    a_ms = a_ms_all_apps[a_ms_all_apps.app_id == chosen_app_id]
-    a_geo_ms = a_geo_ms_all_apps[a_geo_ms_all_apps.app_id == chosen_app_id]
-    over_time_data = over_time_data[over_time_data.app_id == chosen_app_id]
-    over_time_slopes = over_time_slopes[over_time_slopes.app_id == chosen_app_id]
+    a_geo = a_geo_all_apps[a_geo_all_apps.app_id.isin([chosen_app_id])]
+    a_ms = a_ms_all_apps[a_ms_all_apps.app_id.isin([chosen_app_id])]
+    a_geo_ms = a_geo_ms_all_apps[a_geo_ms_all_apps.app_id.isin([chosen_app_id])]
+    over_time_data = over_time_data[over_time_data.app_id.isin([chosen_app_id])]
+    over_time_slopes = over_time_slopes[over_time_slopes.app_id.isin([chosen_app_id])]
 
     chosen_benchmark_group = a_geo.benchmark_group.unique()[0]
-    b_geo = b_geo_all_groups[b_geo_all_groups.benchmark_group == chosen_benchmark_group]
-    b_ms = b_ms_all_groups[b_ms_all_groups.benchmark_group == chosen_benchmark_group]
-    b_geo_ms = b_geo_ms_all_groups[b_geo_ms_all_groups.benchmark_group == chosen_benchmark_group]
+    b_geo = b_geo_all_groups[b_geo_all_groups.benchmark_group.isin([chosen_benchmark_group])]
+    b_ms = b_ms_all_groups[b_ms_all_groups.benchmark_group.isin([chosen_benchmark_group])]
+    b_geo_ms = b_geo_ms_all_groups[b_geo_ms_all_groups.benchmark_group.isin([chosen_benchmark_group])]
     return {"b_geo_ms": b_geo_ms, "b_ms": b_ms, "b_geo": b_geo,
             "a_geo_ms": a_geo_ms, "a_ms": a_ms, "a_geo": a_geo,
             "b_geo_ms_all_groups": b_geo_ms_all_groups, "b_ms_all_groups": b_ms_all_groups,

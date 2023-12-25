@@ -24,7 +24,7 @@ def main():
     dfs_all['over_time_data'] = pd.read_parquet('obfus/over_time_data')
     dfs_all['over_time_slopes'] = pd.read_parquet('obfus/over_time_slopes')
 
-    dfs_specific = get_data(dfs_all, '0df217d0cea42cf654b99b624b15948e37a976750dbda2ec7949c072')
+    dfs_specific = get_data(dfs_all)
     while True:
         if messages_so_far is None:
             user_input = input("Gen-Insights at your service. What would you like to know?\n")

@@ -74,7 +74,7 @@ def main():
     if 'messages_so_far' not in st.session_state:
         st.session_state['messages_so_far'] = None
     if 'total_cost_so_far' not in st.session_state:
-        st.session_state['total_cost_so_far'] = None
+        st.session_state['total_cost_so_far'] = 0
     if 'dfs_specific' not in st.session_state:
         first_app_id = unique_app_ids[0] if len(unique_app_ids) > 0 else None
         st.session_state['dfs_specific'] = get_data(dfs_all, first_app_id) if first_app_id else None
@@ -137,7 +137,7 @@ def main():
 
     if st.button("Reset context"):
         st.session_state['messages_so_far'] = None
-        st.session_state['total_cost_so_far'] = None
+        st.session_state['total_cost_so_far'] = 0
         st.success("Context has been reset")
 
 
