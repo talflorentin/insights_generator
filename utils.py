@@ -35,25 +35,14 @@ def get_data(full_dfs, chosen_app_id=None):
             "over_time_data": over_time_data, "over_time_slopes": over_time_slopes}
 
 
-def get_answer_to_ua_question(dfs, function, metric, group, ordering_type, limit, segment):
+def get_answer_about_my_data(dfs, metric, group, ordering_type, limit):
     metric = 'cpi' if metric == 'CPI' else metric
-    if function == 'general_benchmark_question':
-        return general_benchmark_question(dfs, group, metric, limit)
-    if function == 'general_benchmark_question_specific_segment':
-        return general_benchmark_question_specific_segment(dfs, group, metric, limit, segment)
-    elif function == 'opportunities_to_grow':
-        return opportunities_to_grow(dfs, group, metric, ordering_type, limit)
-    elif function == 'my_own_stats':
-        return my_own_stats(dfs, group, metric, limit)
-    elif function == 'compare_with_benchmark':
-        return compare_with_benchmark(dfs, group, metric, limit)
-    elif function == "my_data_interpret":
-        return my_data_interpret(dfs)
-    elif function == "my_trends":
-        return my_trends(dfs, limit)
-    elif function == 'benchmark_analyze':
-        return benchmark_analyze(dfs, metric, limit)
-    return json.dumps({"insight": f"Sorry, no insight to show"})
+    return my_own_stats(dfs, group, metric, ordering_type, limit)
+
+
+def get_answer_about_benchmark_data(dfs, metric, group, ordering_type, limit):
+    metric = 'cpi' if metric == 'CPI' else metric
+    return general_benchmark_question(dfs, group, metric, ordering_type, limit)
 
 
 def calculate_price(response, model_used):

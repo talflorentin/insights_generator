@@ -32,7 +32,8 @@ def run_conversation(dfs, client, query, messages=None, total_cost_so_far=0):
         messages_branch = messages.copy()
         messages_branch.append(response_message)
         logging.info(f'\nChosen tools to use: {[tool.function.name for tool in tool_calls]}')
-        available_functions = {"get_answer_to_ua_question": get_answer_to_ua_question}
+        available_functions = {"get_answer_about_my_data": get_answer_about_my_data,
+                               "get_answer_about_benchmark_data": get_answer_about_benchmark_data}
         for tool_call in tool_calls:
             function_name = tool_call.function.name
             function_to_call = available_functions[function_name]
@@ -40,12 +41,10 @@ def run_conversation(dfs, client, query, messages=None, total_cost_so_far=0):
             logging.info(f'\nFunction args detects: {function_args}')
             function_response = function_to_call(
                 dfs=dfs,
-                function=function_args.get("function"),
                 metric=function_args.get("metric"),
                 group=function_args.get("group"),
                 ordering_type=function_args.get("ordering_type", 'total_installs'),
-                limit=function_args.get("limit", 5),
-                segment=function_args.get("segment", None),
+                limit=function_args.get("limit", 5)
             )
 
             if isinstance(function_response, tuple):
@@ -62,27 +61,12 @@ def run_conversation(dfs, client, query, messages=None, total_cost_so_far=0):
                     "content": function_response_text,
                 }
             )
-        if function_args.get('function') == 'benchmark_analyze':
-            messages_branch.append({"role": "system", "content": "benchmark_only data represents data which only the competitors run in.\
-            It's useful to explore new segments to buy users in. Make a quick analysis on that dataframe\
-            benchmark_and_app represent data which exists both for the UA's app AND the direct competitors.\
-            Used for comparison and evaluation of metrics. Make a short analysis about it\
-            app_only represents data which usually competitors don't run in. Make a short analysis about it\
-            On top of it, 3 follow-up questions:\
-            If your results contain '_int', keep it. For cost and revenue numbers, add $ sign. For retention rates and rate differences add % sign.\
-            if the result for the question is not within the JSON, say you don't have the answer at the moment, do not come up with a fake answer!\
-            If possible, show the results as a table. Don't skip any columns, show all of them.\
-            The follow up questions should be in the same 'style' but not a copy of the previous questions.\
-            they should not contain actual names of countries or media sources."})
 
-        else:
-            messages_branch.append({"role": "system", "content": "Show the results, but make sure not to change any value and print it the way you see it\
-            If your results contains values with suffix '_int', keep it - and make sure it's lowercase. For cost and revenue numbers, add $ sign. For retention rates and rate differences add % sign.\
-            if the result for the question is not within the JSON, say you don't have the answer at the moment, do not come up with a fake answer!\
-            If possible, show the results as a table. Don't skip any columns, show all of them.\
-            If user asked to interpret his data, don't show all the results, just create some interesting and meaningful insights.\
-            After showing the initial results, suggest 3 follow-up questions. The follow up questions should be in the same 'style' but not a copy of the previous questions.\
-            they should not contain actual names of countries or media sources."})
+        messages_branch.append({"role": "system", "content": "Show the results, but make sure not to change any value and print it the way you see it\
+        If your results contains values with suffix '_int', keep it - and make sure it's lowercase. For cost and revenue numbers, add $ sign. For retention rates and rate differences add % sign.\
+        if the result for the question is not within the JSON, say you don't have the answer at the moment, do not come up with a fake answer!\
+        If possible, show the results as a table. Don't skip any columns, show all of them.\
+        If you get 2 tables, try to combine them to one, but rows should have the same keys"})
 
         second_response = client.chat.completions.create(
             model=model_to_use,
